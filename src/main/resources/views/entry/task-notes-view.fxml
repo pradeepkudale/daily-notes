@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import org.controlsfx.control.textfield.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.web.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.controlsfx.control.textfield.CustomTextField?>
+
+<BorderPane fx:id="dailyNotesPaneView" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="460.0" prefWidth="717.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <bottom>
+      <ToolBar prefHeight="19.0" prefWidth="717.0" BorderPane.alignment="CENTER">
+         <items>
+            <Button fx:id="buttonAddSubTask" mnemonicParsing="false" text="Add Sub Task" />
+            <Separator orientation="VERTICAL" prefHeight="7.0" prefWidth="0.0" />
+            <Label text="Priority " />
+            <SplitMenuButton fx:id="buttonPriority" mnemonicParsing="false" text="SplitMenuButton">
+               <items>
+                  <MenuItem mnemonicParsing="false" text="High" />
+                  <MenuItem mnemonicParsing="false" text="Medium" />
+                  <MenuItem mnemonicParsing="false" text="Low" />
+               </items>
+            </SplitMenuButton>
+            <Separator orientation="VERTICAL" prefHeight="27.0" prefWidth="0.0" />
+            <Label text="Start Date" />
+            <DatePicker fx:id="dateStart" />
+            <Label text="End Date" />
+            <DatePicker fx:id="dateEnd" />
+         </items>
+      </ToolBar>
+   </bottom>
+   <top>
+      <VBox prefHeight="59.0" prefWidth="717.0" BorderPane.alignment="CENTER">
+         <children>
+            <HBox prefHeight="16.0" prefWidth="717.0">
+               <children>
+                  <CheckBox fx:id="checkCompleted" mnemonicParsing="false">
+                     <font>
+                        <Font size="21.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="-2.0" top="5.0" />
+                     </HBox.margin>
+                  </CheckBox>
+                  <Button fx:id="buttonClose" mnemonicParsing="false" text="X">
+                     <HBox.margin>
+                        <Insets bottom="5.0" right="5.0" top="5.0" />
+                     </HBox.margin>
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                  </Button>
+                  <TextField fx:id="textFieldName" promptText="Note" HBox.hgrow="ALWAYS">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets right="5.0" top="5.0" />
+                     </HBox.margin>
+                  </TextField>
+               </children>
+            </HBox>
+            <HBox prefHeight="16.0" prefWidth="717.0">
+               <children>
+                  <CustomTextField fx:id="textFieldTags" promptText="Tags" HBox.hgrow="ALWAYS">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" />
+                     </HBox.margin>
+                  </CustomTextField>
+               </children>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" />
+         </children>
+      </VBox>
+   </top>
+   <center>
+      <ListView fx:id="listViewSubTasks" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+         <BorderPane.margin>
+            <Insets bottom="5.0" left="5.0" right="5.0" />
+         </BorderPane.margin>
+      </ListView>
+   </center>
+</BorderPane>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
+<?import org.controlsfx.control.textfield.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<?import org.controlsfx.control.textfield.CustomTextField?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="394.0" prefWidth="821.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.pradale.dailynotes.controller.DailyNotesMainController">
+   <center>
+      <SplitPane dividerPositions="0.1794871794871795" prefHeight="407.0" prefWidth="834.0" BorderPane.alignment="CENTER">
+        <items>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <VBox prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                      <children>
+                          <HBox prefHeight="30.0" prefWidth="152.0">
+                              <children>
+                                  <HBox alignment="CENTER_LEFT" prefHeight="30.0" prefWidth="111.0" HBox.hgrow="ALWAYS">
+                                      <children>
+                                          <Label text="All Notes">
+                                              <HBox.margin>
+                                                  <Insets left="2.0" top="2.0" />
+                                              </HBox.margin>
+                                          </Label>
+                                      </children>
+                                  </HBox>
+                                  <HBox alignment="CENTER_RIGHT" prefHeight="30.0" prefWidth="55.0" HBox.hgrow="NEVER">
+                                      <children>
+                                    <SplitMenuButton fx:id="buttonAddTaskNotes" mnemonicParsing="false" onAction="#addNewBasicNote" text="+">
+                                      <items>
+                                        <MenuItem mnemonicParsing="false" text="Basic Note" onAction="#addNewBasicNote" />
+                                        <MenuItem mnemonicParsing="false" text="Rich Note" onAction="#addNewRichNote" />
+                                        <MenuItem mnemonicParsing="false" text="Task Note" onAction="#addNewTaskNote" />
+                                      </items>
+                                       <font>
+                                          <Font size="15.0" />
+                                       </font>
+                                    </SplitMenuButton>
+                                      </children>
+                                  </HBox>
+                              </children>
+                          </HBox>
+                          <HBox prefHeight="22.0" prefWidth="152.0">
+                              <children>
+                                  <CustomTextField fx:id="textFieldTaskSearch" prefHeight="23.0" promptText="Search..." HBox.hgrow="ALWAYS" />
+                              </children>
+                          </HBox>
+                          <ListView fx:id="listViewMaster" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
+                      </children>
+                  </VBox>
+               </children>
+            </AnchorPane>
+          <AnchorPane fx:id="dailyNotesPane" minHeight="0.0" minWidth="0.0" prefHeight="392.0" prefWidth="696.0" />
+        </items>
+      </SplitPane>
+   </center>
+</BorderPane>

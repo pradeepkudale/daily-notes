@@ -2,6 +2,7 @@ package org.pradale.dailynotes.controller;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
@@ -10,16 +11,18 @@ import javafx.scene.layout.Priority;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.pradale.dailynotes.events.SaveNotesEntryEvent;
 import org.pradale.dailynotes.events.UpdateNotesEntryEvent;
+import org.pradale.dailynotes.model.NotesEntryPriority;
 import org.pradale.dailynotes.model.entry.AbstractNotesEntryDetails;
 import org.pradale.dailynotes.model.entry.SubTaskEntry;
 import org.pradale.dailynotes.model.entry.TaskNotesEntryDetailsImpl;
+import org.pradale.dailynotes.util.AppUtils;
 import org.springframework.stereotype.Component;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Random;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @Component
@@ -41,6 +44,17 @@ public class TaskNotesViewController extends AbstractDailyNotesController {
 
     @FXML
     private ListView listViewSubTask;
+
+    @FXML
+    private DatePicker dateStart;
+
+    @FXML
+    private DatePicker dateEnd;
+
+    @FXML
+    private SplitMenuButton buttonPriority;
+
+    private static DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     @Override
     public void setNotesEntryDetails(AbstractNotesEntryDetails notesEntry) {
@@ -133,6 +147,7 @@ public class TaskNotesViewController extends AbstractDailyNotesController {
 
                     cancelButton.setOnAction(click -> {
                         listViewSubTasks.getItems().remove(subTaskEntry);
+                        eventBus.post(new SaveNotesEntryEvent(taskNotesEntryDetails));
                     });
 
                     HBox.setHgrow(description, Priority.ALWAYS);
@@ -141,18 +156,45 @@ public class TaskNotesViewController extends AbstractDailyNotesController {
                 }
             }
         });
-    }
 
-    private String generateTaskId() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddDSSS");
-        return String.format("%s-%s%s", "Task", sdf.format(new Date()), new Random().nextInt(9));
+        buttonPriority.setText(taskNotesEntryDetails.getPriority().name());
+
+        if(StringUtils.isNotBlank(taskNotesEntryDetails.getDateStart())) {
+            dateStart.setValue(LocalDate.parse(taskNotesEntryDetails.getDateStart(),DATE_FORMATTER));
+        }
+
+        if(StringUtils.isNotBlank(taskNotesEntryDetails.getDateEnd())) {
+            dateEnd.setValue(LocalDate.parse(taskNotesEntryDetails.getDateEnd(),DATE_FORMATTER));
+        }
+
+        dateStart.setOnAction(action -> {
+            taskNotesEntryDetails.setDateStart(dateStart.getValue().format(DATE_FORMATTER));
+            eventBus.post(new SaveNotesEntryEvent(taskNotesEntryDetails));
+        });
+
+        dateEnd.setOnAction(action -> {
+            taskNotesEntryDetails.setDateEnd(dateEnd.getValue().format(DATE_FORMATTER));
+            eventBus.post(new SaveNotesEntryEvent(taskNotesEntryDetails));
+        });
     }
 
     public void addSubTask() {
         SubTaskEntry taskEntry = new SubTaskEntry();
-        String id = generateTaskId();
+        String id = AppUtils.generateTaskId();
         taskEntry.setId(id);
-        taskEntry.setDescription("TASK - " + id);
         listViewSubTasks.getItems().add(taskEntry);
+        eventBus.post(new SaveNotesEntryEvent(taskNotesEntryDetails));
+    }
+
+    public void setPriority(ActionEvent actionEvent) {
+        MenuItem menuItem = (MenuItem) actionEvent.getSource();
+
+        if(menuItem.getText().equalsIgnoreCase(NotesEntryPriority.LOW.name())) {
+            taskNotesEntryDetails.setPriority(NotesEntryPriority.LOW);
+        }else if (menuItem.getText().equalsIgnoreCase(NotesEntryPriority.MEDIUM.name())) {
+            taskNotesEntryDetails.setPriority(NotesEntryPriority.MEDIUM);
+        }else {
+            taskNotesEntryDetails.setPriority(NotesEntryPriority.HIGH);
+        }
     }
 }

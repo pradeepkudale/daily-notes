@@ -69,7 +69,6 @@ public class JavafxStageImpl implements JavafxStage {
             parent.getChildren().add(pane);
 
         } catch (Exception ex) {
-            ex.printStackTrace();
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Daily Notes - Error");
             alert.setHeaderText("Loading view");

@@ -1,6 +1,7 @@
 package org.pradale.dailynotes.controller;
 
 import com.google.common.eventbus.EventBus;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.input.KeyCode;
@@ -65,5 +66,6 @@ public class RichNotesViewController extends AbstractDailyNotesController {
                 }
             }
         });
-        }
+    }
+
 }

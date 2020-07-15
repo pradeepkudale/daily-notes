@@ -20,9 +20,9 @@
             <Label text="Priority " />
             <SplitMenuButton fx:id="buttonPriority" mnemonicParsing="false" text="SplitMenuButton">
                <items>
-                  <MenuItem mnemonicParsing="false" text="High" />
-                  <MenuItem mnemonicParsing="false" text="Medium" />
-                  <MenuItem mnemonicParsing="false" text="Low" />
+                  <MenuItem mnemonicParsing="false" text="High" onAction="#setPriority"/>
+                  <MenuItem mnemonicParsing="false" text="Medium" onAction="#setPriority"/>
+                  <MenuItem mnemonicParsing="false" text="Low" onAction="#setPriority"/>
                </items>
             </SplitMenuButton>
             <Separator orientation="VERTICAL" prefHeight="27.0" prefWidth="0.0" />

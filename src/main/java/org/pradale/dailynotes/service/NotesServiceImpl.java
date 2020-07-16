@@ -8,7 +8,9 @@ import org.apache.commons.io.FilenameUtils;
 import org.pradale.dailynotes.events.SaveNotesEntryEvent;
 import org.pradale.dailynotes.model.NotesEntry;
 import org.pradale.dailynotes.model.NotesEntryType;
+import org.pradale.dailynotes.model.entry.MarkDownNotesEntryDetailsImpl;
 import org.pradale.dailynotes.model.entry.RichTextNotesEntryDetailsImpl;
+import org.pradale.dailynotes.model.entry.TaskDescNotesEntryDetailsImpl;
 import org.pradale.dailynotes.model.entry.TaskNotesEntryDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -76,12 +78,20 @@ public class NotesServiceImpl implements NotesService {
             ObjectMapper mapper = new ObjectMapper();
             try {
                 switch (FilenameUtils.getExtension(file.getName())) {
+                    case "pdmn":
+                        NotesEntry entry = mapper.readValue(file, MarkDownNotesEntryDetailsImpl.class);
+                        entries.add(entry);
+                        break;
                     case "pdrn":
-                        NotesEntry entry = mapper.readValue(file, RichTextNotesEntryDetailsImpl.class);
+                        entry = mapper.readValue(file, RichTextNotesEntryDetailsImpl.class);
                         entries.add(entry);
                         break;
                     case "pdtn":
                         entry = mapper.readValue(file, TaskNotesEntryDetailsImpl.class);
+                        entries.add(entry);
+                        break;
+                    case "pdtdn":
+                        entry = mapper.readValue(file, TaskDescNotesEntryDetailsImpl.class);
                         entries.add(entry);
                         break;
                 }

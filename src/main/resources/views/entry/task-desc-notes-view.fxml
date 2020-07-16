@@ -15,10 +15,10 @@
    <bottom>
       <ToolBar prefHeight="19.0" prefWidth="717.0" BorderPane.alignment="CENTER">
          <items>
-            <Button mnemonicParsing="false" text="Add Sub Task" />
+            <Button fx:id="buttonAddSubTask" mnemonicParsing="false" text="Add Sub Task" />
             <Separator orientation="VERTICAL" prefHeight="7.0" prefWidth="0.0" />
             <Label text="Priority " />
-            <SplitMenuButton mnemonicParsing="false" text="SplitMenuButton">
+            <SplitMenuButton fx:id="buttonPriority" mnemonicParsing="false" text="SplitMenuButton">
                <items>
                   <MenuItem mnemonicParsing="false" text="Action 1" />
                   <MenuItem mnemonicParsing="false" text="Action 2" />
@@ -26,10 +26,11 @@
             </SplitMenuButton>
             <Separator orientation="VERTICAL" prefHeight="27.0" prefWidth="0.0" />
             <Label text="Start Date" />
-            <DatePicker />
+            <DatePicker fx:id="dateStart" />
             <Label text="End Date" />
-            <DatePicker />
-         </items></ToolBar>
+            <DatePicker fx:id="dateEnd" />
+         </items>
+      </ToolBar>
    </bottom>
    <top>
       <VBox prefHeight="59.0" prefWidth="717.0" BorderPane.alignment="CENTER">
@@ -83,12 +84,12 @@
         <items>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                <children>
-                  <HTMLEditor htmlText="&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body contenteditable=&quot;true&quot;&gt;&lt;/body&gt;&lt;/html&gt;" layoutX="92.0" layoutY="-45.0" prefHeight="200.0" prefWidth="506.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  <HTMLEditor fx:id="htmlEditorDesc" htmlText="&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body contenteditable=&quot;true&quot;&gt;&lt;/body&gt;&lt;/html&gt;" layoutX="92.0" layoutY="-45.0" prefHeight="200.0" prefWidth="506.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                </children>
             </AnchorPane>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                <children>
-                  <ListView layoutX="227.0" layoutY="-16.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  <ListView fx:id="listViewSubTasks" layoutX="227.0" layoutY="-16.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                </children>
             </AnchorPane>
         </items>

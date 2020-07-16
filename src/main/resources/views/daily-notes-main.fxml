@@ -36,6 +36,7 @@
                                         <MenuItem mnemonicParsing="false" text="Basic Note" onAction="#addNewBasicNote" />
                                         <MenuItem mnemonicParsing="false" text="Rich Note" onAction="#addNewRichNote" />
                                         <MenuItem mnemonicParsing="false" text="Task Note" onAction="#addNewTaskNote" />
+                                        <MenuItem mnemonicParsing="false" text="Task Details Note" onAction="#addNewTaskWithDescNote" />
                                       </items>
                                        <font>
                                           <Font size="15.0" />

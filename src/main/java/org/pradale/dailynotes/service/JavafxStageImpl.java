@@ -6,10 +6,14 @@ import javafx.scene.control.Alert;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import lombok.extern.slf4j.Slf4j;
+import org.pradale.dailynotes.controller.MarkDownViewController;
 import org.pradale.dailynotes.controller.RichNotesViewController;
 import org.pradale.dailynotes.controller.TaskNotesViewController;
+import org.pradale.dailynotes.controller.TaskWithDescNotesViewController;
 import org.pradale.dailynotes.model.NotesEntry;
+import org.pradale.dailynotes.model.entry.MarkDownNotesEntryDetailsImpl;
 import org.pradale.dailynotes.model.entry.RichTextNotesEntryDetailsImpl;
+import org.pradale.dailynotes.model.entry.TaskDescNotesEntryDetailsImpl;
 import org.pradale.dailynotes.model.entry.TaskNotesEntryDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -33,7 +37,13 @@ public class JavafxStageImpl implements JavafxStage {
     private RichNotesViewController richNotesViewController;
 
     @Autowired
+    private MarkDownViewController markDownViewController;
+
+    @Autowired
     private TaskNotesViewController taskNotesViewController;
+
+    @Autowired
+    private TaskWithDescNotesViewController taskWithDescNotesViewController;
 
     public void loadView(Pane parent, NotesEntry entry) {
         Objects.requireNonNull(parent, "Parent pane cannot be null.");
@@ -45,10 +55,16 @@ public class JavafxStageImpl implements JavafxStage {
 
             switch (entry.getType()) {
                 case MARK_DOWN:
+                    fxmlLoader.setController(markDownViewController);
+                    markDownViewController.setNotesEntryDetails((MarkDownNotesEntryDetailsImpl) entry);
                     break;
                 case RICH_TEXT:
                     fxmlLoader.setController(richNotesViewController);
                     richNotesViewController.setNotesEntryDetails((RichTextNotesEntryDetailsImpl) entry);
+                    break;
+                case TASK_WITH_DESC:
+                    fxmlLoader.setController(taskWithDescNotesViewController);
+                    taskWithDescNotesViewController.setNotesEntryDetails((TaskDescNotesEntryDetailsImpl) entry);
                     break;
                 case TASK:
                     fxmlLoader.setController(taskNotesViewController);

@@ -19,7 +19,9 @@ import org.controlsfx.control.textfield.CustomTextField;
 import org.pradale.dailynotes.events.UpdateNotesEntryEvent;
 import org.pradale.dailynotes.model.NotesEntry;
 import org.pradale.dailynotes.model.NotesEntryType;
+import org.pradale.dailynotes.model.entry.MarkDownNotesEntryDetailsImpl;
 import org.pradale.dailynotes.model.entry.RichTextNotesEntryDetailsImpl;
+import org.pradale.dailynotes.model.entry.TaskDescNotesEntryDetailsImpl;
 import org.pradale.dailynotes.model.entry.TaskNotesEntryDetailsImpl;
 import org.pradale.dailynotes.service.JavafxStage;
 import org.pradale.dailynotes.service.NotesService;
@@ -143,6 +145,11 @@ public class DailyNotesMainController {
     }
 
     public void addNewBasicNote(ActionEvent actionEvent) {
+        NotesEntry entry = new MarkDownNotesEntryDetailsImpl();
+        entry.setId(FileUtils.getNewFileName(entry.getType()));
+        entry.setName("New Note");
+        javafxStage.loadView(dailyNotesPane, entry);
+        listViewMasterData.add(entry);
     }
 
     public void addNewRichNote(ActionEvent actionEvent) {
@@ -161,4 +168,11 @@ public class DailyNotesMainController {
         listViewMasterData.add(entry);
     }
 
+    public void addNewTaskWithDescNote(ActionEvent actionEvent) {
+        NotesEntry entry = new TaskDescNotesEntryDetailsImpl();
+        entry.setId(FileUtils.getNewFileName(entry.getType()));
+        entry.setName("New Note");
+        javafxStage.loadView(dailyNotesPane, entry);
+        listViewMasterData.add(entry);
+    }
 }

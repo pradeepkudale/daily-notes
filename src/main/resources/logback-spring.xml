@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <springProperty scope="context" name="application.name" source="dailynotes.root.directory.name"/>
+    <springProperty scope="context" name="application.name" source="dailynotes.log.directory.name"/>
     <springProperty scope="context" name="LOG_FILE" source="dailynotes.log.file.path"/>
 
     <!-- If LOG_FILE is present then use that suffixed with application.name.log-->

@@ -7,18 +7,18 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
+import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.controlsfx.control.textfield.CustomTextField;
+import org.pradale.dailynotes.component.NotesTreeItem;
+import org.pradale.dailynotes.component.TreeCellImpl;
 import org.pradale.dailynotes.events.UpdateNotesEntryEvent;
 import org.pradale.dailynotes.model.NotesEntry;
-import org.pradale.dailynotes.model.NotesEntryType;
 import org.pradale.dailynotes.model.entry.MarkDownNotesEntryDetailsImpl;
 import org.pradale.dailynotes.model.entry.RichTextNotesEntryDetailsImpl;
 import org.pradale.dailynotes.model.entry.TaskDescNotesEntryDetailsImpl;
@@ -31,8 +31,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Controller
 public class DailyNotesMainController {
@@ -57,9 +58,22 @@ public class DailyNotesMainController {
     private CustomTextField textFieldTaskSearch;
 
     @FXML
+    private SplitPane splitPaneParent;
+
+    @FXML
+    private AnchorPane splitPaneParentLeftPane;
+
+    @FXML
+    private AnchorPane splitPaneNotesLeftPane;
+
+    @FXML
+    private TreeView treeViewMaster;
+
+    @FXML
     public void initialize() {
         eventBus.register(this);
         initializeComponents();
+        initializeTree();
     }
 
     private void initializeComponents() {
@@ -119,6 +133,63 @@ public class DailyNotesMainController {
                 return false;
             });
         }));
+
+        splitPaneParentLeftPane.maxWidthProperty().bind(splitPaneParent.widthProperty().multiply(0.15));
+        splitPaneNotesLeftPane.maxWidthProperty().bind(splitPaneParent.widthProperty().multiply(0.15));
+    }
+
+    public void initializeTree() {
+        TreeItem rootItem = new TreeItem("Root");
+
+        int nTotals = listViewMasterData.size();
+        int nRecents = 0;
+        int nArchived = 0;
+        int nTrash = 0;
+        int nUnTags = 0;
+
+        Set<String> tags = new HashSet<>();
+        for (NotesEntry entry : listViewMasterData) {
+            if(CollectionUtils.isNotEmpty(entry.getTags())) {
+                tags.addAll(entry.getTags());
+            }else {
+                nUnTags++;
+            }
+        }
+
+        int nTags = tags.size();
+
+        NotesTreeItem allNotes = new NotesTreeItem(getNodeName("All Notes", nTotals), eventBus);
+        NotesTreeItem recentItems = new NotesTreeItem(getNodeName("Recent", nRecents), eventBus);
+        NotesTreeItem archivedItems = new NotesTreeItem(getNodeName("Archived", nArchived), eventBus);
+        NotesTreeItem trashItems = new NotesTreeItem(getNodeName("Trash", nTrash), eventBus);
+        NotesTreeItem tagItems = new NotesTreeItem(getNodeName("Tags", nTags), eventBus);
+        NotesTreeItem unTagItems = new NotesTreeItem(getNodeName("Un-Tags", nUnTags), eventBus);
+
+        for(String tag : tags) {
+            tagItems.getChildren().add(new NotesTreeItem(tag, eventBus));
+        }
+
+        rootItem.getChildren().add(allNotes);
+        rootItem.getChildren().add(recentItems);
+        rootItem.getChildren().add(archivedItems);
+        rootItem.getChildren().add(trashItems);
+        rootItem.getChildren().add(new TreeItem(null));
+        rootItem.getChildren().add(tagItems);
+        rootItem.getChildren().add(unTagItems);
+
+
+        treeViewMaster.setRoot(rootItem);
+        treeViewMaster.setShowRoot(false);
+        treeViewMaster.setCellFactory(param -> {
+            return new TreeCellImpl();
+        });
+        treeViewMaster.refresh();
+        MultipleSelectionModel msm = treeViewMaster.getSelectionModel();
+        msm.select(allNotes);
+    }
+
+    private String getNodeName(String node, int size) {
+        return String.format("%s (%d)", node, size);
     }
 
     @Subscribe
@@ -128,20 +199,20 @@ public class DailyNotesMainController {
     }
 
     public void sortNotesEntry() {
-        Collections.sort(listViewMasterData, new Comparator<NotesEntry>() {
-            @Override
-            public int compare(NotesEntry obj1, NotesEntry obj2) {
-
-                if (obj1.getType() == NotesEntryType.TASK && obj2.getType() == NotesEntryType.TASK) {
-                    TaskNotesEntryDetailsImpl entry1 = (TaskNotesEntryDetailsImpl) obj1;
-                    TaskNotesEntryDetailsImpl entry2 = (TaskNotesEntryDetailsImpl) obj2;
-
-                    return Boolean.compare(entry1.isCompleted(), entry2.isCompleted());
-                } else {
-                    return 1;
-                }
-            }
-        });
+//        Collections.sort(listViewMasterData, new Comparator<NotesEntry>() {
+//            @Override
+//            public int compare(NotesEntry obj1, NotesEntry obj2) {
+//
+//                if (obj1.getType() == NotesEntryType.TASK && obj2.getType() == NotesEntryType.TASK) {
+//                    TaskNotesEntryDetailsImpl entry1 = (TaskNotesEntryDetailsImpl) obj1;
+//                    TaskNotesEntryDetailsImpl entry2 = (TaskNotesEntryDetailsImpl) obj2;
+//
+//                    return Boolean.compare(entry1.isCompleted(), entry2.isCompleted());
+//                } else {
+//                    return 1;
+//                }
+//            }
+//        });
     }
 
     public void addNewBasicNote(ActionEvent actionEvent) {
@@ -175,4 +246,5 @@ public class DailyNotesMainController {
         javafxStage.loadView(dailyNotesPane, entry);
         listViewMasterData.add(entry);
     }
+
 }

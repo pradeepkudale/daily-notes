@@ -2,6 +2,8 @@ package org.pradale.dailynotes.controller;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -50,6 +52,7 @@ public class DailyNotesMainController {
     @FXML
     private ListView<NotesEntry> listViewMaster;
     private ObservableList<NotesEntry> listViewMasterData = FXCollections.observableArrayList();
+    private FilteredList<NotesEntry> filteredData = new FilteredList(listViewMasterData);
 
     @FXML
     private AnchorPane dailyNotesPane;
@@ -78,10 +81,9 @@ public class DailyNotesMainController {
 
     private void initializeComponents() {
         List<NotesEntry> entries = notesService.loadAll();
-
         listViewMasterData.addAll(entries);
         sortNotesEntry();
-        FilteredList<NotesEntry> filteredData = new FilteredList(listViewMasterData);
+
         listViewMaster.setItems(filteredData);
         listViewMaster.setCellFactory(listView -> new ListCell<NotesEntry>() {
             @Override
@@ -149,9 +151,9 @@ public class DailyNotesMainController {
 
         Set<String> tags = new HashSet<>();
         for (NotesEntry entry : listViewMasterData) {
-            if(CollectionUtils.isNotEmpty(entry.getTags())) {
+            if (CollectionUtils.isNotEmpty(entry.getTags())) {
                 tags.addAll(entry.getTags());
-            }else {
+            } else {
                 nUnTags++;
             }
         }
@@ -165,7 +167,7 @@ public class DailyNotesMainController {
         NotesTreeItem tagItems = new NotesTreeItem(getNodeName("Tags", nTags), eventBus);
         NotesTreeItem unTagItems = new NotesTreeItem(getNodeName("Un-Tags", nUnTags), eventBus);
 
-        for(String tag : tags) {
+        for (String tag : tags) {
             tagItems.getChildren().add(new NotesTreeItem(tag, eventBus));
         }
 
@@ -177,7 +179,6 @@ public class DailyNotesMainController {
         rootItem.getChildren().add(tagItems);
         rootItem.getChildren().add(unTagItems);
 
-
         treeViewMaster.setRoot(rootItem);
         treeViewMaster.setShowRoot(false);
         treeViewMaster.setCellFactory(param -> {
@@ -186,6 +187,39 @@ public class DailyNotesMainController {
         treeViewMaster.refresh();
         MultipleSelectionModel msm = treeViewMaster.getSelectionModel();
         msm.select(allNotes);
+
+        treeViewMaster.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<NotesTreeItem>() {
+
+            @Override
+            public void changed(ObservableValue<? extends NotesTreeItem> observable, NotesTreeItem oldValue, NotesTreeItem newValue) {
+                if(newValue.getValue() != null) {
+                    String selectedValue = newValue.getValue().toString();
+
+                    if(selectedValue.startsWith("All Notes")) {
+                        filteredData.setPredicate(null);
+                    }else if(selectedValue.startsWith("Tags")) {
+                        filteredData.setPredicate(data -> {
+                            if (data.getTags() != null && data.getTags().size() > 0) {
+                                return true;
+                            }
+                            return false;
+                        });
+
+                    }else if(selectedValue.startsWith("Un-Tags")) {
+                        filteredData.setPredicate(data -> {
+                            if (data.getTags() == null || data.getTags().size() == 0) {
+                                return true;
+                            }
+                            return false;
+                        });
+
+                    }
+
+                    listViewMaster.setItems(filteredData);
+                    listViewMaster.refresh();
+                }
+            }
+        });
     }
 
     private String getNodeName(String node, int size) {
@@ -246,5 +280,4 @@ public class DailyNotesMainController {
         javafxStage.loadView(dailyNotesPane, entry);
         listViewMasterData.add(entry);
     }
-
 }

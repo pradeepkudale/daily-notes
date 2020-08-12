@@ -19,7 +19,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.controlsfx.control.textfield.CustomTextField;
 import org.pradale.dailynotes.component.NotesTreeItem;
 import org.pradale.dailynotes.component.TreeCellImpl;
+import org.pradale.dailynotes.events.SaveNotesEntryEvent;
 import org.pradale.dailynotes.events.UpdateNotesEntryEvent;
+import org.pradale.dailynotes.events.UpdateNotesTags;
 import org.pradale.dailynotes.model.NotesEntry;
 import org.pradale.dailynotes.model.entry.MarkDownNotesEntryDetailsImpl;
 import org.pradale.dailynotes.model.entry.RichTextNotesEntryDetailsImpl;
@@ -32,8 +34,8 @@ import org.pradale.dailynotes.util.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
-import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -71,6 +73,9 @@ public class DailyNotesMainController {
 
     @FXML
     private TreeView treeViewMaster;
+
+    private NotesTreeItem tagItems = null;
+    private NotesTreeItem unTagItems = null;
 
     @FXML
     public void initialize() {
@@ -141,7 +146,7 @@ public class DailyNotesMainController {
     }
 
     public void initializeTree() {
-        TreeItem rootItem = new TreeItem("Root");
+        NotesTreeItem rootItem = new NotesTreeItem("Root");
 
         int nTotals = listViewMasterData.size();
         int nRecents = 0;
@@ -164,8 +169,8 @@ public class DailyNotesMainController {
         NotesTreeItem recentItems = new NotesTreeItem(getNodeName("Recent", nRecents), eventBus);
         NotesTreeItem archivedItems = new NotesTreeItem(getNodeName("Archived", nArchived), eventBus);
         NotesTreeItem trashItems = new NotesTreeItem(getNodeName("Trash", nTrash), eventBus);
-        NotesTreeItem tagItems = new NotesTreeItem(getNodeName("Tags", nTags), eventBus);
-        NotesTreeItem unTagItems = new NotesTreeItem(getNodeName("Un-Tags", nUnTags), eventBus);
+        tagItems = new NotesTreeItem(getNodeName("Tags", nTags), eventBus);
+        unTagItems = new NotesTreeItem(getNodeName("Un-Tags", nUnTags), eventBus);
 
         for (String tag : tags) {
             tagItems.getChildren().add(new NotesTreeItem(tag, eventBus));
@@ -175,16 +180,17 @@ public class DailyNotesMainController {
         rootItem.getChildren().add(recentItems);
         rootItem.getChildren().add(archivedItems);
         rootItem.getChildren().add(trashItems);
-        rootItem.getChildren().add(new TreeItem(null));
+        rootItem.getChildren().add(new NotesTreeItem(null));
         rootItem.getChildren().add(tagItems);
         rootItem.getChildren().add(unTagItems);
 
+        rootItem.setGraphic(null);
         treeViewMaster.setRoot(rootItem);
         treeViewMaster.setShowRoot(false);
         treeViewMaster.setCellFactory(param -> {
             return new TreeCellImpl();
         });
-        treeViewMaster.refresh();
+
         MultipleSelectionModel msm = treeViewMaster.getSelectionModel();
         msm.select(allNotes);
 
@@ -194,6 +200,7 @@ public class DailyNotesMainController {
             public void changed(ObservableValue<? extends NotesTreeItem> observable, NotesTreeItem oldValue, NotesTreeItem newValue) {
                 if(newValue.getValue() != null) {
                     String selectedValue = newValue.getValue().toString();
+                    String parentValue = newValue.getParent() != null ? newValue.getParent().getValue().toString() : "";
 
                     if(selectedValue.startsWith("All Notes")) {
                         filteredData.setPredicate(null);
@@ -205,14 +212,21 @@ public class DailyNotesMainController {
                             return false;
                         });
 
-                    }else if(selectedValue.startsWith("Un-Tags")) {
+                    } else if(parentValue.startsWith("Tags")) {
+                        filteredData.setPredicate(data -> {
+                            if (data.getTags() != null && data.getTags().contains(selectedValue)) {
+                                return true;
+                            }
+                            return false;
+                        });
+
+                    } else if(selectedValue.startsWith("Un-Tags")) {
                         filteredData.setPredicate(data -> {
                             if (data.getTags() == null || data.getTags().size() == 0) {
                                 return true;
                             }
                             return false;
                         });
-
                     }
 
                     listViewMaster.setItems(filteredData);
@@ -220,6 +234,8 @@ public class DailyNotesMainController {
                 }
             }
         });
+
+        treeViewMaster.refresh();
     }
 
     private String getNodeName(String node, int size) {
@@ -279,5 +295,62 @@ public class DailyNotesMainController {
         entry.setName("New Note");
         javafxStage.loadView(dailyNotesPane, entry);
         listViewMasterData.add(entry);
+    }
+
+    @Subscribe
+    public void updateTag(UpdateNotesTags event) {
+        NotesEntry updatedTagEntry = event.getEntry();
+        String tag = event.getTag();
+        int unTagSize = getUnTagSize();
+
+        if(event.isNewEntry()) {
+            // Tag is added
+            NotesTreeItem newItem = new NotesTreeItem(tag, eventBus);
+            tagItems.getChildren().add(newItem);
+            String updatedNodesText = getNodeName("Tags", tagItems.getChildren().size());
+            tagItems.setValue(updatedNodesText);
+
+            if(updatedTagEntry.getTags().size() == 1) {
+                updatedNodesText = getNodeName("Un-Tags", unTagSize - 1);
+                unTagItems.setValue(updatedNodesText);
+            }
+
+            MultipleSelectionModel msm = treeViewMaster.getSelectionModel();
+            msm.select(newItem);
+        }else {
+            if(updatedTagEntry.getTags() == null || updatedTagEntry.getTags().size() == 0) {
+                String updatedNodesText = getNodeName("Un-Tags", unTagSize + 1);
+                unTagItems.setValue(updatedNodesText);
+            }
+
+            MultipleSelectionModel msm = treeViewMaster.getSelectionModel();
+            msm.select(unTagItems);
+
+            // Tag is removed
+            Iterator<Object> iterator = tagItems.getChildren().iterator();
+            while (iterator.hasNext()) {
+                NotesTreeItem current = (NotesTreeItem) iterator.next();
+                if(current.getValue().equals(tag)) {
+                    iterator.remove();
+                }
+            }
+
+            String updatedNodesText = getNodeName("Tags", tagItems.getChildren().size());
+            tagItems.setValue(updatedNodesText);
+        }
+
+        treeViewMaster.refresh();
+
+        MultipleSelectionModel msm = listViewMaster.getSelectionModel();
+        msm.select(updatedTagEntry);
+    }
+
+    private int getUnTagSize() {
+        String unTagText = (String) unTagItems.getValue();
+        unTagText = unTagText.replace("Un-Tags", "").trim();
+        unTagText = unTagText.replace("(","");
+        unTagText = unTagText.replace(")","");
+
+        return Integer.valueOf(unTagText);
     }
 }

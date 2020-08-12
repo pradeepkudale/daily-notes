@@ -8,6 +8,10 @@ public class NotesTreeItem extends AbstractTreeItem {
 
     private EventBus eventBus;
 
+    public NotesTreeItem(String name) {
+        this.setValue(name);
+    }
+
     public NotesTreeItem(String name, EventBus eventBus) {
         this.setValue(name);
         this.eventBus = eventBus;

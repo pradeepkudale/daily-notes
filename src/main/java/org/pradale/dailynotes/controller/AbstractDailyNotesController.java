@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.controlsfx.control.textfield.CustomTextField;
 import org.pradale.dailynotes.events.SaveNotesEntryEvent;
 import org.pradale.dailynotes.events.UpdateNotesEntryEvent;
+import org.pradale.dailynotes.events.UpdateNotesTags;
 import org.pradale.dailynotes.model.NotesEntry;
 import org.pradale.dailynotes.model.entry.AbstractNotesEntryDetails;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,8 +64,8 @@ public abstract class AbstractDailyNotesController {
         textFieldTags.focusedProperty().addListener((ov, oldV, newV) -> {
             if (!newV) {
                 if (StringUtils.isNotBlank(textFieldTags.getText())) {
-                    String tagsString = textFieldTags.getText();
-                    List<String> tags = Stream.of(tagsString.split(",", -1)).collect(Collectors.toList());
+                    String newTag = textFieldTags.getText();
+                    List<String> tags = Stream.of(newTag.split(",", -1)).collect(Collectors.toList());
 
                     HBox hbox = (HBox) textFieldTags.getLeft();
 
@@ -79,6 +80,7 @@ public abstract class AbstractDailyNotesController {
                     textFieldTags.clear();
                     getEntryDetails().setTags(tags);
                     eventBus.post(new SaveNotesEntryEvent(getEntryDetails()));
+                    eventBus.post(new UpdateNotesTags(getEntryDetails(), true,newTag));
                 }
             }
         });
@@ -99,11 +101,12 @@ public abstract class AbstractDailyNotesController {
             button.setOnAction(event -> {
 
                 HBox gHbox = (HBox) button.getGraphic();
-                Label labelName = (Label) gHbox.getChildren().get(0);
+                Label tagLabelToRemove = (Label) gHbox.getChildren().get(0);
 
-                entry.getTags().remove(labelName.getText());
+                entry.getTags().remove(tagLabelToRemove.getText());
                 hbox.getChildren().remove(button);
                 eventBus.post(new SaveNotesEntryEvent(entry));
+                eventBus.post(new UpdateNotesTags(getEntryDetails(), false, tagLabelToRemove.getText()));
             });
 
             hbox.getChildren().add(button);

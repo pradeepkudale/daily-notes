@@ -1,9 +1,9 @@
 package org.pradale.dailynotes.model;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public interface NotesEntry {
 
@@ -25,11 +25,11 @@ public interface NotesEntry {
 
     void setSummary(String summary);
 
-    default List<String> getTags() {
-        return new ArrayList<>();
+    default Set<String> getTags() {
+        return new HashSet<>();
     }
 
-    void setTags(List<String> tags);
+    void setTags(Set<String> tags);
 
     File getFile();
 

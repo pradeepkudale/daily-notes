@@ -6,7 +6,7 @@ import lombok.Data;
 
 import java.io.File;
 import java.util.Date;
-import java.util.List;
+import java.util.Set;
 
 @Data
 public abstract class NotesEntryImpl implements NotesEntry {
@@ -21,7 +21,7 @@ public abstract class NotesEntryImpl implements NotesEntry {
     private NotesEntryType type;
 
     @JsonProperty
-    private List<String> tags;
+    private Set<String> tags;
 
     @JsonIgnore
     private File file;
@@ -41,4 +41,26 @@ public abstract class NotesEntryImpl implements NotesEntry {
     @JsonProperty
     private boolean deleted;
 
+
+    public Date getLastModified() {
+        if(lastModified == null) {
+            lastModified = new Date();
+        }
+        return lastModified;
+    }
+
+    public void setLastModified(Date lastModified) {
+        this.lastModified = lastModified;
+    }
+
+    public Date getCreatedOn() {
+        if(createdOn == null) {
+            createdOn = new Date();
+        }
+        return createdOn;
+    }
+
+    public void setCreatedOn(Date createdOn) {
+        this.createdOn = createdOn;
+    }
 }

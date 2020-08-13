@@ -22,6 +22,7 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -54,6 +55,7 @@ public class NotesServiceImpl implements NotesService {
     @Override
     public void save(NotesEntry entry) {
         File file = new File(notesDirectory + File.separator + entry.getId());
+        entry.setLastModified(new Date());
         try (FileWriter writer = new FileWriter(file, false)) {
             ObjectMapper mapper = new ObjectMapper();
             String content = mapper.writeValueAsString(entry);

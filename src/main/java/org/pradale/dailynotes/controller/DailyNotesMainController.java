@@ -7,6 +7,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -19,7 +20,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.controlsfx.control.textfield.CustomTextField;
 import org.pradale.dailynotes.component.NotesTreeItem;
 import org.pradale.dailynotes.component.TreeCellImpl;
-import org.pradale.dailynotes.events.SaveNotesEntryEvent;
 import org.pradale.dailynotes.events.UpdateNotesEntryEvent;
 import org.pradale.dailynotes.events.UpdateNotesTags;
 import org.pradale.dailynotes.model.NotesEntry;
@@ -34,10 +34,7 @@ import org.pradale.dailynotes.util.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Controller
 public class DailyNotesMainController {
@@ -149,7 +146,6 @@ public class DailyNotesMainController {
         NotesTreeItem rootItem = new NotesTreeItem("Root");
 
         int nTotals = listViewMasterData.size();
-        int nRecents = 0;
         int nArchived = 0;
         int nTrash = 0;
         int nUnTags = 0;
@@ -166,7 +162,7 @@ public class DailyNotesMainController {
         int nTags = tags.size();
 
         NotesTreeItem allNotes = new NotesTreeItem(getNodeName("All Notes", nTotals), eventBus);
-        NotesTreeItem recentItems = new NotesTreeItem(getNodeName("Recent", nRecents), eventBus);
+        NotesTreeItem recentItems = new NotesTreeItem(getNodeName("Recent", nTotals), eventBus);
         NotesTreeItem archivedItems = new NotesTreeItem(getNodeName("Archived", nArchived), eventBus);
         NotesTreeItem trashItems = new NotesTreeItem(getNodeName("Trash", nTrash), eventBus);
         tagItems = new NotesTreeItem(getNodeName("Tags", nTags), eventBus);
@@ -198,13 +194,31 @@ public class DailyNotesMainController {
 
             @Override
             public void changed(ObservableValue<? extends NotesTreeItem> observable, NotesTreeItem oldValue, NotesTreeItem newValue) {
-                if(newValue.getValue() != null) {
+                if (newValue.getValue() != null) {
                     String selectedValue = newValue.getValue().toString();
                     String parentValue = newValue.getParent() != null ? newValue.getParent().getValue().toString() : "";
 
-                    if(selectedValue.startsWith("All Notes")) {
+                    if (selectedValue.startsWith("All Notes")) {
                         filteredData.setPredicate(null);
-                    }else if(selectedValue.startsWith("Tags")) {
+                        listViewMaster.setItems(filteredData);
+                        listViewMaster.refresh();
+
+                    } else if (selectedValue.startsWith("Recent")) {
+                        filteredData.setPredicate(null);
+                        SortedList<NotesEntry> sortedList = new SortedList<>(filteredData,
+                                (NotesEntry stock1, NotesEntry stock2) -> {
+                                    if (stock1.getLastModified().compareTo(stock2.getLastModified()) > 0) {
+                                        return -1;
+                                    } else if (stock1.getLastModified().compareTo(stock2.getLastModified()) < 0) {
+                                        return 1;
+                                    } else {
+                                        return 0;
+                                    }
+                                });
+
+                        listViewMaster.setItems(sortedList);
+                        listViewMaster.refresh();
+                    } else if (selectedValue.startsWith("Tags")) {
                         filteredData.setPredicate(data -> {
                             if (data.getTags() != null && data.getTags().size() > 0) {
                                 return true;
@@ -212,7 +226,10 @@ public class DailyNotesMainController {
                             return false;
                         });
 
-                    } else if(parentValue.startsWith("Tags")) {
+                        listViewMaster.setItems(filteredData);
+                        listViewMaster.refresh();
+
+                    } else if (parentValue.startsWith("Tags")) {
                         filteredData.setPredicate(data -> {
                             if (data.getTags() != null && data.getTags().contains(selectedValue)) {
                                 return true;
@@ -220,17 +237,20 @@ public class DailyNotesMainController {
                             return false;
                         });
 
-                    } else if(selectedValue.startsWith("Un-Tags")) {
+                        listViewMaster.setItems(filteredData);
+                        listViewMaster.refresh();
+
+                    } else if (selectedValue.startsWith("Un-Tags")) {
                         filteredData.setPredicate(data -> {
                             if (data.getTags() == null || data.getTags().size() == 0) {
                                 return true;
                             }
                             return false;
                         });
-                    }
 
-                    listViewMaster.setItems(filteredData);
-                    listViewMaster.refresh();
+                        listViewMaster.setItems(filteredData);
+                        listViewMaster.refresh();
+                    }
                 }
             }
         });
@@ -303,23 +323,26 @@ public class DailyNotesMainController {
         String tag = event.getTag();
         int unTagSize = getUnTagSize();
 
-        if(event.isNewEntry()) {
+        if (event.isNewEntry()) {
             // Tag is added
-            NotesTreeItem newItem = new NotesTreeItem(tag, eventBus);
-            tagItems.getChildren().add(newItem);
-            String updatedNodesText = getNodeName("Tags", tagItems.getChildren().size());
-            tagItems.setValue(updatedNodesText);
+            NotesTreeItem tagItem = checkifTagIsPresent(tag);
+            if (tagItem == null) {
+                tagItem = new NotesTreeItem(tag, eventBus);
+                tagItems.getChildren().add(tagItem);
+                String updatedNodesText = getNodeName("Tags", tagItems.getChildren().size());
+                tagItems.setValue(updatedNodesText);
 
-            if(updatedTagEntry.getTags().size() == 1) {
-                updatedNodesText = getNodeName("Un-Tags", unTagSize - 1);
-                unTagItems.setValue(updatedNodesText);
+                if (updatedTagEntry.getTags().size() == 1) {
+                    updatedNodesText = getNodeName("Un-Tags", Math.max(0, unTagSize - 1));
+                    unTagItems.setValue(updatedNodesText);
+                }
             }
 
             MultipleSelectionModel msm = treeViewMaster.getSelectionModel();
-            msm.select(newItem);
-        }else {
-            if(updatedTagEntry.getTags() == null || updatedTagEntry.getTags().size() == 0) {
-                String updatedNodesText = getNodeName("Un-Tags", unTagSize + 1);
+            msm.select(tagItem);
+        } else {
+            if (updatedTagEntry.getTags() == null || updatedTagEntry.getTags().size() == 0) {
+                String updatedNodesText = getNodeName("Un-Tags", Math.max(0, unTagSize + 1));
                 unTagItems.setValue(updatedNodesText);
             }
 
@@ -330,7 +353,7 @@ public class DailyNotesMainController {
             Iterator<Object> iterator = tagItems.getChildren().iterator();
             while (iterator.hasNext()) {
                 NotesTreeItem current = (NotesTreeItem) iterator.next();
-                if(current.getValue().equals(tag)) {
+                if (current.getValue().equals(tag)) {
                     iterator.remove();
                 }
             }
@@ -345,11 +368,23 @@ public class DailyNotesMainController {
         msm.select(updatedTagEntry);
     }
 
+    private NotesTreeItem checkifTagIsPresent(String tag) {
+        for (Object child : tagItems.getChildren()) {
+            NotesTreeItem current = (NotesTreeItem) child;
+
+            if (current.getValue().equals(tag)) {
+                return current;
+            }
+        }
+
+        return null;
+    }
+
     private int getUnTagSize() {
         String unTagText = (String) unTagItems.getValue();
         unTagText = unTagText.replace("Un-Tags", "").trim();
-        unTagText = unTagText.replace("(","");
-        unTagText = unTagText.replace(")","");
+        unTagText = unTagText.replace("(", "");
+        unTagText = unTagText.replace(")", "");
 
         return Integer.valueOf(unTagText);
     }

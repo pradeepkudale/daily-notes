@@ -19,7 +19,7 @@ import org.pradale.dailynotes.model.NotesEntry;
 import org.pradale.dailynotes.model.entry.AbstractNotesEntryDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -65,7 +65,11 @@ public abstract class AbstractDailyNotesController {
             if (!newV) {
                 if (StringUtils.isNotBlank(textFieldTags.getText())) {
                     String newTag = textFieldTags.getText();
-                    List<String> tags = Stream.of(newTag.split(",", -1)).collect(Collectors.toList());
+                    Set<String> newTags = Stream.of(newTag.split(",", -1)).collect(Collectors.toSet());
+                    Set<String> allTags = getEntryDetails().getTags();
+
+                    Set<String> tagsToAdd = newTags.stream().filter(val -> !allTags.contains(val)).collect(Collectors.toSet());
+                    allTags.addAll(tagsToAdd);
 
                     HBox hbox = (HBox) textFieldTags.getLeft();
 
@@ -75,18 +79,21 @@ public abstract class AbstractDailyNotesController {
                         textFieldTags.setLeft(hbox);
                     }
 
-                    updateTags(hbox, getEntryDetails(), tags);
+                    updateTags(hbox, getEntryDetails(), tagsToAdd);
 
                     textFieldTags.clear();
-                    getEntryDetails().setTags(tags);
+                    getEntryDetails().setTags(allTags);
                     eventBus.post(new SaveNotesEntryEvent(getEntryDetails()));
-                    eventBus.post(new UpdateNotesTags(getEntryDetails(), true,newTag));
+
+                    for (String tag : tagsToAdd) {
+                        eventBus.post(new UpdateNotesTags(getEntryDetails(), true, tag));
+                    }
                 }
             }
         });
     }
 
-    public void updateTags(HBox hbox, NotesEntry entry, List<String> tags) {
+    public void updateTags(HBox hbox, NotesEntry entry, Set<String> tags) {
         for (String value : tags) {
             Label label = new Label(value);
             Label close = new Label(" X");
